@@ -149,6 +149,9 @@ class Client(node.Node, pollmixin.PollMixin):
         self.init_ftp_server()
         self.init_sftp_server()
         self.init_drop_uploader()
+        
+        # Check and repair file service
+        self.init_file_crepairer() 
 
         hotline_file = os.path.join(self.basedir,
                                     self.SUICIDE_PREVENTION_HOTLINE_FILE)
@@ -173,7 +176,14 @@ class Client(node.Node, pollmixin.PollMixin):
         self.write_config("announcement-seqnum", "%d\n" % seqnum)
         nonce = _make_secret().strip()
         return seqnum, nonce
-
+        
+    def init_file_crepairer(self):
+        print "init_file_crepairer"
+        from allmydata.immutable.cr_monitor import Cr_monitor
+        s = Cr_monitor(self.storage_broker)
+        s.setServiceParent(self)
+        s.startService()
+    
     def init_introducer_client(self):
         self.introducer_furl = self.get_config("client", "introducer.furl")
         ic = IntroducerClient(self.tub, self.introducer_furl,
